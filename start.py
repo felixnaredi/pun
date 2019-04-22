@@ -24,28 +24,33 @@
 # OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+"""Start program by running this file."""
 
-"""Set-up file for the project."""
+import curses
+import numpy as np
+from pun.adjecentlist import connect, preppend
+from pun.term import draw_snake, init, end
 
-import setuptools
 
+STDSRC = init()
+(MAXY, MAXX) = STDSRC.getmaxyx()
+PAD = curses.newpad(MAXY, MAXX)
 
-with open("README.md", "r") as fh:
-    LONG_DESCRIPTION = fh.read()
+SNK = connect(([0, 0], [4, 4]))
 
-setuptools.setup(
-    name="pun-felixnaredi",
-    version="0.0.1",
-    author="Felix Naredi",
-    author_email="felixnaredi@gmail.com",
-    description="A game where you play as a snake",
-    long_description=LONG_DESCRIPTION,
-    long_description_content_type="text/markdown",
-    url="https://github.com/felixnaredi/pun",
-    packages=setuptools.find_packages(),
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: Simplified BSD License",
-        "Operating System :: MacOS"
-    ]
-)
+while True:
+    PAD.clear()
+    draw_snake(SNK, PAD)
+    PAD.refresh(0, 0, 0, 0, MAXY, MAXX)
+
+    D = {97: np.array([0, -1]),
+         115: np.array([1, 0]),
+         100: np.array([0, 1]),
+         119: np.array([-1, 0]),
+         113: 'quit'}[STDSRC.getch()]
+
+    if D == 'quit':
+        break
+    SNK = preppend(SNK, SNK[0] + D, keep_length=True)
+
+end()

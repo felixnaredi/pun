@@ -26,42 +26,37 @@
 
 
 import curses
-import time
 
 
-def coords(p):
-    xs = []
-    for y in range(p[0]):
-        for x in range(p[1]):
-            xs.append((y, x))
-    return xs
+def init():
+    """Initalizes curses as intended for the game. Returns stdscr.a"""
 
-PUNLOGO = r"""   ____   _   _       _
-  // //  //  //  /\  //
- //_//  //  //  //\\// 
-//     //__//  //  \/  """
-PUNLOGO_SIZE = (4, 24)
-
-
-stdscr = curses.initscr()
-stdscr.clear()
-stdscr.refresh()
-
-lgpad = curses.newpad(4, 24)
-for (c, (y, x)) in zip(PUNLOGO, coords(PUNLOGO_SIZE)):
-    lgpad.addch(y, x, c)
-
-(h, w) = stdscr.getmaxyx()
-for y in range(h):
-    y_off = h - y - 1
+    stdscr = curses.initscr()
     stdscr.clear()
     stdscr.refresh()
-    lgpad.refresh(0, 0, y_off, 8, min(h - 1, y_off + PUNLOGO_SIZE[0]), 8 + PUNLOGO_SIZE[1])
-    time.sleep(0.16)
-stdscr.addstr(5, 4, '-' * min((w - 5), 28))
-stdscr.addstr(7, 7, "New Game")
-stdscr.addstr(9, 7, "Highscore")
-    
-stdscr.getch()
+    curses.curs_set(0)
+    return stdscr
 
-curses.endwin()
+
+def end():
+    """Ends the current curses process."""
+    curses.endwin()
+
+
+def draw_snake(snake, pad):
+    """Draws a snake in a curses pad."""
+
+    ps = [None] + snake + [None]
+    for p in zip(ps[:-2], ps[1:-1], ps[2:]):
+        d0 = None if p[0] is None else ((p[1] - p[0])[0], (p[1] - p[0])[1])
+        d1 = None if p[2] is None else ((p[1] - p[2])[0], (p[1] - p[2])[1])
+
+        c = {
+            None:    {None: None, (-1, 0): '‥', (1, 0): '¨', (0, -1): ':', (0, 1): ':'},
+            (-1, 0): {None: '╽', (-1, 0): None, (1, 0): '║', (0, -1): '╔', (0, 1): '╗'},
+            (1, 0):  {None: '╿', (-1, 0): '║', (1, 0): None, (0, -1): '╚', (0, 1): '╝'},
+            (0, -1): {None: '╼', (-1, 0): '╔', (1, 0): '╚', (0, -1): None, (0, 1): '═'},
+            (0, 1):  {None: '╾', (-1, 0): '╗', (1, 0): '╝', (0, -1): '═', (0, 1): None},
+        }[d0][d1]
+
+        pad.addch(p[1][0], p[1][1], c)

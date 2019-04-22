@@ -25,27 +25,47 @@
 # OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 
-"""Set-up file for the project."""
+import curses
+import time
 
-import setuptools
+class Menu:
+    """Main menu of the game."""
 
+    LOGO = r"""   ____   _   _       _
+  // //  //  //  /\  //
+ //_//  //  //  //\\// 
+//     //__//  //  \/  """
+    LOGO_SIZE = (4, 24)
 
-with open("README.md", "r") as fh:
-    LONG_DESCRIPTION = fh.read()
+    def __init__(self, screen):
+        self.screen = screen
+        self.option = None
 
-setuptools.setup(
-    name="pun-felixnaredi",
-    version="0.0.1",
-    author="Felix Naredi",
-    author_email="felixnaredi@gmail.com",
-    description="A game where you play as a snake",
-    long_description=LONG_DESCRIPTION,
-    long_description_content_type="text/markdown",
-    url="https://github.com/felixnaredi/pun",
-    packages=setuptools.find_packages(),
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "License :: Simplified BSD License",
-        "Operating System :: MacOS"
-    ]
-)
+    @staticmethod
+    def __logo_pad():
+        (h, w) = Menu.LOGO_SIZE
+        pad = curses.newpad(h, w)
+        for (c, (y, x)) in zip(Menu.LOGO, [(y, x) for y in range(h) for x in range(w)]):
+            pad.addch(y, x, c)
+        return pad
+
+    def __intro(self):
+        lgpad = Menu.__logo_pad()
+        (lg_h, lg_w) = Menu.LOGO_SIZE
+        h = self.screen.getmaxyx()[0]
+
+        for y in range(h):
+            y_off = h - y - 1
+            self.screen.clear()
+            self.screen.refresh()
+            lgpad.refresh(0, 0, y_off, 8, min(h - 1, y_off + lg_h), 8 + lg_w)
+            time.sleep(0.16)
+
+    def run(self):
+        w = self.screen.getmaxyx()[1]
+        self.__intro()
+
+        scr = self.screen
+        scr.addstr(5, 4, '-' * min((w - 5), 28))
+        scr.addstr(7, 7, "New Game")
+        scr.addstr(9, 7, "Highscore")
